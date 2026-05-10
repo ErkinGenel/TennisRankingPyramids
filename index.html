@@ -78,10 +78,13 @@
             display: none !important;
         }
         
-        /* Adjust layout for A3 PDF (Landscape) */
+        /* Adjust layout for A3 PDF (Landscape) using strict millimeter measurements */
         .pdf-export-mode {
-            background-color: white;
-            width: 1587px !important; /* Force exact width for html2canvas viewport (A3 Landscape) */
+            background-color: white !important;
+            width: 420mm !important; 
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         /* Remove container paddings/margins that cause extra empty pages */
@@ -90,7 +93,7 @@
             border: none !important;
             box-shadow: none !important;
             background-color: white !important;
-            width: 1587px !important;
+            width: 420mm !important;
             max-width: none !important;
             margin: 0 !important;
         }
@@ -98,76 +101,87 @@
         .pdf-export-mode #pdf-content > div {
             padding: 0 !important;
             margin: 0 !important;
-            width: 1587px !important;
-            max-width: none !important;
-            /* Remove space-y classes */
+            width: 420mm !important;
             display: block !important; 
         }
 
-        /* Pixel-Locked Canvas: Exact fit and 1 page per wrapper */
+        /* Kill Tailwind's space-y-16 margins during PDF export to prevent empty pages */
+        .pdf-export-mode .space-y-16 > * + * {
+            margin-top: 0 !important;
+        }
+        .pdf-export-mode .pb-8 {
+            padding-bottom: 0 !important;
+        }
+
+        /* mm-Locked Canvas: Exact fit and exactly 1 page per wrapper.
+           Reduced to 290mm to give a 7mm absolute safety margin against empty spillover pages. */
         .pdf-export-mode .pyramid-wrapper {
-            /* 1587x1122px exactly equals A3 Landscape at 96dpi */
-            width: 1587px !important; 
-            height: 1122px !important; 
+            width: 420mm !important; 
+            height: 290mm !important; 
             display: flex !important;
             flex-direction: column !important;
-            justify-content: center !important; /* Vertically centralize content */
-            align-items: center !important; /* Horizontally centralize content */
-            padding: 40px !important; 
+            justify-content: center !important; 
+            align-items: center !important; 
+            padding: 0 !important; 
             margin: 0 !important; 
             box-sizing: border-box !important;
             border: none !important; 
             background-color: white !important;
-            overflow: hidden !important; /* Strictly prevents any extension */
+            overflow: hidden !important; 
+            page-break-inside: avoid !important;
         }
 
+        /* Increased gaps for bigger layout */
         .pdf-export-mode .pyramid-container {
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important; 
             align-items: center !important; 
-            gap: 25px !important; /* Reduced vertical gap to make pyramid smaller */
+            gap: 22px !important; 
             width: 100% !important;
-            margin-top: 1rem !important; 
-            margin-bottom: 0 !important;
+            margin: 0 !important;
         }
 
+        /* Increased gaps for bigger layout */
         .pdf-export-mode .pyramid-row {
             display: flex !important;
             justify-content: center !important;
-            gap: 20px !important; /* Standardized horizontal gap */
+            gap: 22px !important; 
         }
 
+        /* Much larger player cards */
         .pdf-export-mode .player-card {
-            padding: 0.75rem 1rem !important;
-            min-width: 150px !important; 
-            border-width: 2px !important;
+            padding: 12px 20px !important;
+            min-width: 180px !important; 
+            border-width: 3px !important;
             box-shadow: none !important; 
             border-color: #374151 !important; 
             background-color: white !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
-            border-radius: 8px !important;
+            border-radius: 10px !important;
         }
 
+        /* Larger text */
         .pdf-export-mode .player-card span {
-            font-size: 1rem !important; /* Smaller text size for compact look */
+            font-size: 18px !important; 
             font-weight: bold !important;
         }
 
+        /* Larger rank badges */
         .pdf-export-mode .rank-badge {
-            width: 28px !important;
-            height: 28px !important;
-            font-size: 0.9rem !important;
-            top: -12px !important;
-            left: -12px !important;
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 16px !important;
+            top: -14px !important;
+            left: -14px !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
         }
 
-        /* Dedicated Headers for PDF pages */
+        /* Larger Dedicated Headers */
         .pdf-header {
             display: none;
         }
@@ -175,20 +189,20 @@
         .pdf-export-mode .pdf-header {
             display: block !important;
             text-align: center !important;
-            margin-bottom: 2rem !important; /* Reduced space below header */
+            margin-bottom: 50px !important; 
             width: 100% !important;
         }
         
         .pdf-export-mode .pdf-header h1 {
-            font-size: 3rem !important;
+            font-size: 42px !important;
         }
         
         .pdf-export-mode .pdf-header h2 {
-            font-size: 2.5rem !important;
+            font-size: 32px !important;
         }
         
         .pdf-export-mode .pdf-header p {
-            font-size: 1.5rem !important;
+            font-size: 20px !important;
         }
 
         .pdf-export-mode .web-header {
@@ -750,17 +764,18 @@
             element.classList.remove('shadow-sm', 'border', 'border-gray-200', 'p-8', 'rounded-lg');
 
             const opt = {
-                margin:       0, // Zero margin, handle padding inside the wrappers
+                margin:       0, 
                 filename:     `Forderungspyramiden_${today.toISOString().split('T')[0]}.pdf`,
                 image:        { type: 'jpeg', quality: 1.0 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
                     letterRendering: true, 
-                    windowWidth: 1587, // Lock the canvas to exactly the pixel width of our A3 Landscape wrapper
-                    scrollY: 0         // Prevent scrolling offset bugs causing cutoffs
+                    scrollY: 0,
+                    windowWidth: 1587 // Force logical width calculation for html2canvas
                 },
-                jsPDF:        { unit: 'px', format: [1587, 1122], orientation: 'landscape' }, // Landscape mode
+                // Use standard 'mm' measurements for the engine instead of rigid pixels
+                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
                 pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' }
             };
 
