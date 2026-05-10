@@ -81,7 +81,7 @@
         /* Adjust layout for A3 PDF */
         .pdf-export-mode {
             background-color: white;
-            overflow: hidden;
+            width: 1587px !important; /* Force exact width for html2canvas viewport */
         }
 
         /* Remove container paddings/margins that cause extra empty pages */
@@ -90,7 +90,7 @@
             border: none !important;
             box-shadow: none !important;
             background-color: white !important;
-            width: 100% !important;
+            width: 1587px !important;
             max-width: none !important;
             margin: 0 !important;
         }
@@ -98,71 +98,70 @@
         .pdf-export-mode #pdf-content > div {
             padding: 0 !important;
             margin: 0 !important;
-            width: 100% !important;
+            width: 1587px !important;
             max-width: none !important;
             /* Remove space-y classes */
             display: block !important; 
         }
 
-        /* Scale and Center Content */
+        /* Pixel-Locked Canvas: Exact fit and 1 page per wrapper */
         .pdf-export-mode .pyramid-wrapper {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            /* Exact pixel dimensions for A3 Landscape at 96dpi guarantees exact fit and 1 page per wrapper */
+            /* 1587x1122px exactly equals A3 Landscape at 96dpi */
             width: 1587px !important; 
             height: 1122px !important; 
             display: flex !important;
             flex-direction: column !important;
-            justify-content: flex-start !important; 
-            align-items: center !important; 
-            padding: 80px 40px !important; 
+            justify-content: center !important; /* Vertically centralize content */
+            align-items: center !important; /* Horizontally centralize content */
+            padding: 60px !important; 
             margin: 0 !important; 
             box-sizing: border-box !important;
             border: none !important; 
-            border-radius: 0 !important;
             background-color: white !important;
-            overflow: hidden !important; /* Strictly prevents second page extensions */
+            overflow: hidden !important; /* Strictly prevents any extension */
         }
 
         .pdf-export-mode .pyramid-container {
             display: flex !important;
             flex-direction: column !important;
-            justify-content: space-evenly !important; /* Stretches rows vertically to fill the page */
+            justify-content: center !important; 
             align-items: center !important; 
-            flex-grow: 1 !important; /* Takes up all remaining space below header */
+            gap: 40px !important; /* Big vertical gap between rows */
             width: 100% !important;
             margin-top: 2rem !important; 
             margin-bottom: 0 !important;
         }
 
         .pdf-export-mode .pyramid-row {
-            gap: 2.5rem !important; /* Larger horizontal spacing between cards */
             display: flex !important;
             justify-content: center !important;
+            gap: 30px !important; /* Big horizontal gap between cards */
         }
 
         .pdf-export-mode .player-card {
-            padding: 1.5rem 2.5rem !important;
-            min-width: 240px !important; /* Much larger cards for A3 */
+            padding: 1.5rem 2rem !important;
+            min-width: 220px !important; 
             border-width: 3px !important;
-            box-shadow: none !important; /* Removed shadow */
-            border-color: #374151 !important; /* Clean, dark border */
+            box-shadow: none !important; 
+            border-color: #374151 !important; 
             background-color: white !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
+            border-radius: 12px !important;
         }
 
         .pdf-export-mode .player-card span {
-            font-size: 2.2rem !important; /* Huge text to fill A3 page */
+            font-size: 1.5rem !important; 
+            font-weight: bold !important;
         }
 
         .pdf-export-mode .rank-badge {
-            width: 54px !important;
-            height: 54px !important;
-            font-size: 1.8rem !important;
-            top: -27px !important;
-            left: -27px !important;
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 1.25rem !important;
+            top: -20px !important;
+            left: -20px !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
@@ -176,20 +175,20 @@
         .pdf-export-mode .pdf-header {
             display: block !important;
             text-align: center !important;
-            margin-bottom: 2rem !important;
+            margin-bottom: 3rem !important;
             width: 100% !important;
         }
         
         .pdf-export-mode .pdf-header h1 {
-            font-size: 4rem !important;
-        }
-        
-        .pdf-export-mode .pdf-header h2 {
             font-size: 3rem !important;
         }
         
+        .pdf-export-mode .pdf-header h2 {
+            font-size: 2.5rem !important;
+        }
+        
         .pdf-export-mode .pdf-header p {
-            font-size: 1.8rem !important;
+            font-size: 1.5rem !important;
         }
 
         .pdf-export-mode .web-header {
@@ -758,9 +757,11 @@
                     scale: 2, 
                     useCORS: true, 
                     letterRendering: true, 
-                    windowWidth: 1587 // Lock the canvas to exactly the pixel width of our A3 wrapper
+                    windowWidth: 1587, // Lock the canvas to exactly the pixel width of our A3 wrapper
+                    scrollY: 0         // Prevent scrolling offset bugs causing cutoffs
                 },
-                jsPDF:        { unit: 'px', format: [1587, 1122], orientation: 'landscape' }
+                jsPDF:        { unit: 'px', format: [1587, 1122], orientation: 'landscape' },
+                pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' }
             };
 
             // Generate PDF and then restore the view
