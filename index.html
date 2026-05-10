@@ -758,4 +758,23 @@
                     scale: 2, 
                     useCORS: true, 
                     letterRendering: true, 
-                    // Lock the
+                    windowWidth: 1587 // Lock the canvas to exactly the pixel width of our A3 wrapper
+                },
+                jsPDF:        { unit: 'px', format: [1587, 1122], orientation: 'landscape' }
+            };
+
+            // Generate PDF and then restore the view
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore web view styles
+                document.body.classList.remove('pdf-export-mode');
+                element.classList.add('shadow-sm', 'border', 'border-gray-200', 'p-8', 'rounded-lg');
+            });
+        }
+
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', (event) => {
+            renderAll();
+        });
+    </script>
+</body>
+</html>
