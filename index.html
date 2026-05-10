@@ -81,8 +81,57 @@
         /* Adjust layout for A3 PDF */
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
-            margin-bottom: 2rem;
             width: 100%;
+            height: 280mm; /* Stretch to A3 landscape height */
+            display: flex;
+            flex-direction: column;
+            padding-top: 10mm;
+            box-sizing: border-box;
+        }
+
+        .pdf-export-mode .pyramid-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly; /* Evenly space the rows vertically */
+            gap: 1.5rem;
+        }
+
+        .pdf-export-mode .pyramid-row {
+            gap: 2rem;
+        }
+
+        .pdf-export-mode .player-card {
+            padding: 1.5rem 2rem;
+            min-width: 200px;
+            border-width: 3px;
+        }
+
+        .pdf-export-mode .player-card span {
+            font-size: 1.5rem;
+        }
+
+        .pdf-export-mode .rank-badge {
+            width: 36px;
+            height: 36px;
+            font-size: 1.2rem;
+            top: -18px;
+            left: -18px;
+        }
+
+        /* Dedicated Headers for PDF pages */
+        .pdf-header {
+            display: none;
+        }
+
+        .pdf-export-mode .pdf-header {
+            display: block;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .pdf-export-mode .web-header {
+            display: none;
         }
 
         /* Forces a new page for PDF generation */
@@ -164,28 +213,38 @@
 
             <!-- Content to be exported to PDF -->
             <div id="pdf-content" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                <div class="text-center mb-8 hidden" id="pdf-header">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Forderungspyramiden</h1>
-                    <p class="text-gray-500" id="pdf-date"></p>
-                </div>
-
                 <!-- Changed from flex layout to block layout to ensure PDF page-breaks work reliably -->
                 <div class="block w-full space-y-16 pb-8">
                     <!-- Herren U60 Pyramid -->
                     <div class="pyramid-wrapper w-full" id="pyramid-herren-u60">
-                        <h3 class="text-xl font-bold text-center text-blue-800 mb-4 border-b-2 border-blue-200 pb-2">Herren U60</h3>
+                        <div class="pdf-header">
+                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="text-3xl font-bold text-blue-800 mb-4">Forderungspyramiden - Herren U60</h2>
+                            <p class="text-gray-500 current-date"></p>
+                        </div>
+                        <h3 class="web-header text-xl font-bold text-center text-blue-800 mb-4 border-b-2 border-blue-200 pb-2">Herren U60</h3>
                         <div id="render-herren-u60" class="pyramid-container"></div>
                     </div>
 
                     <!-- Herren Ü60 Pyramid (With page break for PDF) -->
                     <div class="pyramid-wrapper w-full page-break" id="pyramid-herren-ue60">
-                        <h3 class="text-xl font-bold text-center text-green-800 mb-4 border-b-2 border-green-200 pb-2">Herren Ü60</h3>
+                        <div class="pdf-header">
+                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="text-3xl font-bold text-green-800 mb-4">Forderungspyramiden - Herren Ü60</h2>
+                            <p class="text-gray-500 current-date"></p>
+                        </div>
+                        <h3 class="web-header text-xl font-bold text-center text-green-800 mb-4 border-b-2 border-green-200 pb-2">Herren Ü60</h3>
                         <div id="render-herren-ue60" class="pyramid-container"></div>
                     </div>
 
                     <!-- Damen Pyramid (With page break for PDF) -->
                     <div class="pyramid-wrapper w-full page-break" id="pyramid-damen">
-                        <h3 class="text-xl font-bold text-center text-pink-800 mb-4 border-b-2 border-pink-200 pb-2">Damen</h3>
+                        <div class="pdf-header">
+                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="text-3xl font-bold text-pink-800 mb-4">Forderungspyramiden - Damen</h2>
+                            <p class="text-gray-500 current-date"></p>
+                        </div>
+                        <h3 class="web-header text-xl font-bold text-center text-pink-800 mb-4 border-b-2 border-pink-200 pb-2">Damen</h3>
                         <div id="render-damen" class="pyramid-container"></div>
                     </div>
                 </div>
@@ -337,27 +396,31 @@
         // Initial Mock Data (In a real app, this would come from a backend)
         const initialData = {
             herren_u60: [
-                "Thomas M.", "Michael S.", "Andreas K.", "Stefan L.", "Christian P.", 
-                "Markus B.", "Daniel T.", "Florian W.", "Tobias R.", "Alexander H."
+                "Adam Gibson", "Yannick Wolfers", "Robert Kristofic", "Christoph Glotzbach", "Andreas Jungk", 
+                "Fabian Stiefel", "Daniel Kempny", "Andreas Wüllner", "Tobias Tomberger", "Martin Schubert", 
+                "Leonard Teutsch", "Stefan Gaule", "Michael Sayer", "Stefan Menzel", "Jan van Buijtenen", 
+                "Henri Reichenbach", "Nils Hagenlocher", "Markus Brosch", "Erkin Genel", "Vincent Wolfers", "Tobias Litz"
             ],
             herren_ue60: [
-                "Günther W.", "Peter M.", "Klaus D.", "Werner F.", "Hans-Peter S.",
-                "Manfred B."
+                "Frank Schiele", "Davor Dudak", "Horst Gatzky", "Ralf Bär", "Thomas Sauter", 
+                "Dieter Rilling", "Eugen Sessler", "Walter Schach", "Hubert Spitzenstätter", 
+                "Josef Wolfers", "Jürgen Hahn", "Thomas Steinmeier", "Helmut Notter"
             ],
             damen: [
-                "Sabine K.", "Martina S.", "Julia W.", "Claudia B.", "Andrea L.",
-                "Stefanie M.", "Karin P.", "Lisa H."
+                "Tanja Radloff", "Birgit Jungk", "Lara Wolfers", "Carolin Teustch", "Vivien Frank", 
+                "Sandra Kopp", "Sylvia van Buijtenen", "Susan Hombach", "Inken Zyschka", 
+                "Bettina Reichenbach", "Henriette Sayer", "Susanne Hofrichter", "Gabriele Hahn"
             ]
         };
 
-        // Load data from localStorage or use initial data
-        let pyramidData = JSON.parse(localStorage.getItem('tennisPyramidData')) || initialData;
+        // Load data from localStorage or use initial data (Changed key to load new defaults)
+        let pyramidData = JSON.parse(localStorage.getItem('tennisPyramidData_TCW')) || initialData;
         let currentActionCategory = '';
 
         // --- Utility Functions ---
 
         function saveState() {
-            localStorage.setItem('tennisPyramidData', JSON.stringify(pyramidData));
+            localStorage.setItem('tennisPyramidData_TCW', JSON.stringify(pyramidData));
             renderAll();
         }
 
@@ -625,10 +688,10 @@
             
             // Add styling class to hide buttons and format for A3
             document.body.classList.add('pdf-export-mode');
-            document.getElementById('pdf-header').classList.remove('hidden');
             
             const today = new Date();
-            document.getElementById('pdf-date').textContent = `Stand: ${today.toLocaleDateString('de-DE')}`;
+            const dateString = `Stand: ${today.toLocaleDateString('de-DE')}`;
+            document.querySelectorAll('.current-date').forEach(el => el.textContent = dateString);
 
             const opt = {
                 margin:       10,
@@ -645,11 +708,9 @@
             html2pdf().set(opt).from(element).save().then(() => {
                 // Cleanup after export
                 document.body.classList.remove('pdf-export-mode');
-                document.getElementById('pdf-header').classList.add('hidden');
             }).catch(err => {
                 console.error("PDF Export Error:", err);
                 document.body.classList.remove('pdf-export-mode');
-                document.getElementById('pdf-header').classList.add('hidden');
                 showMessage('Fehler', 'Beim Erstellen des PDFs ist ein Fehler aufgetreten.', 'error');
             });
         }
