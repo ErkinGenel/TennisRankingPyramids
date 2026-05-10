@@ -83,17 +83,29 @@
             background-color: white;
         }
 
+        /* Remove container paddings/margins that cause extra empty pages */
+        .pdf-export-mode #pdf-content {
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .pdf-export-mode #pdf-content > div {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
             width: 100%;
-            height: 265mm; /* Safe strict height for A3 landscape (297mm) with 10mm margins */
-            max-height: 265mm;
+            height: 275mm !important; /* Exact printable height for A3 landscape (297mm - 20mm margins) */
+            max-height: 275mm !important;
             display: flex;
             flex-direction: column;
-            padding-top: 5mm;
+            padding: 5mm 0 0 0 !important;
             margin: 0 !important; /* Overrides Tailwind space-y spacing to prevent overflow */
             box-sizing: border-box;
-            overflow: hidden; /* Prevents any slight bleeding */
+            overflow: hidden; /* Prevents any slight pixel bleeding */
         }
 
         .pdf-export-mode .pyramid-container {
@@ -146,8 +158,6 @@
         .pdf-export-mode .page-break {
             page-break-before: always !important;
             break-before: page !important;
-            padding-top: 0 !important; /* Remove web padding that causes overflow */
-            margin-top: 0 !important;
         }
         
         .pdf-export-mode h2 {
@@ -703,10 +713,10 @@
             document.querySelectorAll('.current-date').forEach(el => el.textContent = dateString);
 
             const opt = {
-                margin:       10,
+                margin:       10, // 10mm margin on all sides
                 filename:     `Forderungspyramiden_${today.toISOString().split('T')[0]}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1600 }, // windowWidth ensures desktop layout
                 // Use A3 format, landscape orientation allows wide pyramids to fit perfectly
                 jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
                 // Explicitly tell the engine to break pages before elements with the .page-break class
