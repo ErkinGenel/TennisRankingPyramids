@@ -88,6 +88,7 @@
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
+            background-color: transparent !important;
         }
         
         .pdf-export-mode #pdf-content > div {
@@ -98,14 +99,17 @@
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
             width: 100%;
-            height: 275mm !important; /* Exact printable height for A3 landscape (297mm - 20mm margins) */
-            max-height: 275mm !important;
+            height: 255mm !important; /* Scaled down safely below A3 Landscape limits (297mm) */
+            max-height: 255mm !important;
             display: flex;
             flex-direction: column;
-            padding: 5mm 0 0 0 !important;
-            margin: 0 !important; /* Overrides Tailwind space-y spacing to prevent overflow */
+            padding: 10mm !important; /* Inner padding so content breathes inside the frame */
+            margin: 0 auto !important; 
             box-sizing: border-box;
-            overflow: hidden; /* Prevents any slight pixel bleeding */
+            border: 2px solid #d1d5db !important; /* Outer gray frame explicitly per page */
+            border-radius: 1rem !important;
+            background-color: white !important;
+            overflow: hidden; 
         }
 
         .pdf-export-mode .pyramid-container {
@@ -113,30 +117,30 @@
             display: flex;
             flex-direction: column;
             justify-content: space-evenly; /* Evenly space the rows vertically */
-            gap: 0.5rem; /* Tighter gap to ensure fit */
-            margin-bottom: 5mm;
+            gap: 0.25rem; /* Scaled down gap */
+            margin-bottom: 0;
         }
 
         .pdf-export-mode .pyramid-row {
-            gap: 1.5rem;
+            gap: 1rem; /* Scaled down gap */
         }
 
         .pdf-export-mode .player-card {
-            padding: 1rem 1.5rem; /* Slightly reduced padding */
-            min-width: 180px;
-            border-width: 3px;
+            padding: 0.5rem 1rem; /* Scaled down padding */
+            min-width: 140px;
+            border-width: 2px;
         }
 
         .pdf-export-mode .player-card span {
-            font-size: 1.5rem;
+            font-size: 1.15rem; /* Scaled down text */
         }
 
         .pdf-export-mode .rank-badge {
-            width: 36px;
-            height: 36px;
-            font-size: 1.2rem;
-            top: -18px;
-            left: -18px;
+            width: 28px;
+            height: 28px;
+            font-size: 1rem;
+            top: -14px;
+            left: -14px;
         }
 
         /* Dedicated Headers for PDF pages */
