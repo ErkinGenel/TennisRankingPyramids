@@ -117,8 +117,9 @@
         /* Adjust layout for A3 PDF (Landscape) using strict millimeter measurements */
         .pdf-export-mode {
             overflow: visible !important;
+            background-color: white !important;
+            width: 420mm !important; 
             height: auto !important;
-            width: auto !important;
             margin: 0 !important;
             padding: 0 !important;
         }
@@ -131,13 +132,15 @@
             width: 420mm !important;
             max-width: none !important;
             margin: 0 !important;
+            overflow: visible !important;
         }
         
         .pdf-export-mode #pdf-content > div {
             padding: 0 !important;
             margin: 0 !important;
             width: 420mm !important;
-            display: block !important; 
+            display: block !important;
+            overflow: visible !important;
         }
 
         /* Kill Tailwind's space-y-16 margins during PDF export to prevent empty pages */
