@@ -81,6 +81,7 @@
         /* Adjust layout for A3 PDF */
         .pdf-export-mode {
             background-color: white;
+            overflow: hidden;
         }
 
         /* Remove container paddings/margins that cause extra empty pages */
@@ -88,69 +89,83 @@
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
-            background-color: transparent !important;
-            width: 1444px !important; /* Strict width to match A3 landscape ratio */
-            max-width: 1444px !important;
-            margin: 0 auto !important;
+            background-color: white !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
         }
         
         .pdf-export-mode #pdf-content > div {
             padding: 0 !important;
             margin: 0 !important;
-            width: 1444px !important;
-            max-width: 1444px !important;
+            width: 100% !important;
+            max-width: none !important;
+            /* Remove space-y classes */
+            display: block !important; 
         }
 
+        /* Scale and Center Content */
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
-            width: 1444px !important;
-            height: 1000px !important; /* Perfect aspect ratio for 400x277mm A3 printable area */
-            max-height: 1000px !important;
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Center content vertically */
-            align-items: center; /* Center content horizontally */
-            padding: 2rem !important; 
-            margin: 0 auto !important; 
-            box-sizing: border-box;
-            border: 2px solid #d1d5db !important; /* Outer gray frame explicitly per page */
-            border-radius: 1rem !important;
+            page-break-inside: avoid;
+            /* Exact pixel dimensions for A3 Landscape at 96dpi guarantees exact fit and 1 page per wrapper */
+            width: 1587px !important; 
+            height: 1122px !important; 
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important; 
+            align-items: center !important; 
+            padding: 80px 40px !important; 
+            margin: 0 !important; 
+            box-sizing: border-box !important;
+            border: none !important; 
+            border-radius: 0 !important;
             background-color: white !important;
-            overflow: hidden; 
+            overflow: hidden !important; /* Strictly prevents second page extensions */
         }
 
         .pdf-export-mode .pyramid-container {
-            flex-grow: 0; /* Remove flex-grow to allow natural centering */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center; 
-            gap: 0.5rem; /* Scaled down gap */
-            margin-top: 2rem; /* Space below header */
-            margin-bottom: 0;
-            width: 100%;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-evenly !important; /* Stretches rows vertically to fill the page */
+            align-items: center !important; 
+            flex-grow: 1 !important; /* Takes up all remaining space below header */
+            width: 100% !important;
+            margin-top: 2rem !important; 
+            margin-bottom: 0 !important;
         }
 
         .pdf-export-mode .pyramid-row {
-            gap: 1rem; /* Scaled down gap */
+            gap: 2.5rem !important; /* Larger horizontal spacing between cards */
+            display: flex !important;
+            justify-content: center !important;
         }
 
         .pdf-export-mode .player-card {
-            padding: 0.5rem 1rem; /* Scaled down padding */
-            min-width: 140px;
-            border-width: 2px;
+            padding: 1.5rem 2.5rem !important;
+            min-width: 240px !important; /* Much larger cards for A3 */
+            border-width: 3px !important;
+            box-shadow: none !important; /* Removed shadow */
+            border-color: #374151 !important; /* Clean, dark border */
+            background-color: white !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
 
         .pdf-export-mode .player-card span {
-            font-size: 1.15rem; /* Scaled down text */
+            font-size: 2.2rem !important; /* Huge text to fill A3 page */
         }
 
         .pdf-export-mode .rank-badge {
-            width: 28px;
-            height: 28px;
-            font-size: 1rem;
-            top: -14px;
-            left: -14px;
+            width: 54px !important;
+            height: 54px !important;
+            font-size: 1.8rem !important;
+            top: -27px !important;
+            left: -27px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
 
         /* Dedicated Headers for PDF pages */
@@ -159,14 +174,26 @@
         }
 
         .pdf-export-mode .pdf-header {
-            display: block;
-            text-align: center;
-            margin-bottom: 1rem;
-            width: 100%;
+            display: block !important;
+            text-align: center !important;
+            margin-bottom: 2rem !important;
+            width: 100% !important;
+        }
+        
+        .pdf-export-mode .pdf-header h1 {
+            font-size: 4rem !important;
+        }
+        
+        .pdf-export-mode .pdf-header h2 {
+            font-size: 3rem !important;
+        }
+        
+        .pdf-export-mode .pdf-header p {
+            font-size: 1.8rem !important;
         }
 
         .pdf-export-mode .web-header {
-            display: none;
+            display: none !important;
         }
 
         /* Forces a new page for PDF generation */
@@ -175,12 +202,6 @@
             break-before: page !important;
         }
         
-        .pdf-export-mode h2 {
-            font-size: 2rem;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
         /* Navigation styles */
         .nav-btn {
             padding: 0.75rem 1.5rem;
@@ -247,13 +268,12 @@
 
             <!-- Content to be exported to PDF -->
             <div id="pdf-content" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                <!-- Changed from flex layout to block layout to ensure PDF page-breaks work reliably -->
                 <div class="block w-full space-y-16 pb-8">
                     <!-- Herren U60 Pyramid -->
-                    <div class="pyramid-wrapper w-full" id="pyramid-herren-u60">
+                    <div class="pyramid-wrapper" id="pyramid-herren-u60">
                         <div class="pdf-header">
-                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
-                            <h2 class="text-3xl font-bold text-blue-800 mb-4">Forderungspyramiden - Herren U60</h2>
+                            <h1 class="font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="font-bold text-blue-800 mb-4">Forderungspyramiden - Herren U60</h2>
                             <p class="text-gray-500 current-date"></p>
                         </div>
                         <h3 class="web-header text-xl font-bold text-center text-blue-800 mb-4 border-b-2 border-blue-200 pb-2">Herren U60</h3>
@@ -261,10 +281,10 @@
                     </div>
 
                     <!-- Herren Ü60 Pyramid (With page break for PDF) -->
-                    <div class="pyramid-wrapper w-full page-break" id="pyramid-herren-ue60">
+                    <div class="pyramid-wrapper page-break" id="pyramid-herren-ue60">
                         <div class="pdf-header">
-                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
-                            <h2 class="text-3xl font-bold text-green-800 mb-4">Forderungspyramiden - Herren Ü60</h2>
+                            <h1 class="font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="font-bold text-green-800 mb-4">Forderungspyramiden - Herren Ü60</h2>
                             <p class="text-gray-500 current-date"></p>
                         </div>
                         <h3 class="web-header text-xl font-bold text-center text-green-800 mb-4 border-b-2 border-green-200 pb-2">Herren Ü60</h3>
@@ -272,10 +292,10 @@
                     </div>
 
                     <!-- Damen Pyramid (With page break for PDF) -->
-                    <div class="pyramid-wrapper w-full page-break" id="pyramid-damen">
+                    <div class="pyramid-wrapper page-break" id="pyramid-damen">
                         <div class="pdf-header">
-                            <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
-                            <h2 class="text-3xl font-bold text-pink-800 mb-4">Forderungspyramiden - Damen</h2>
+                            <h1 class="font-bold text-gray-900 mb-2">TC Wannweil e.V.</h1>
+                            <h2 class="font-bold text-pink-800 mb-4">Forderungspyramiden - Damen</h2>
                             <p class="text-gray-500 current-date"></p>
                         </div>
                         <h3 class="web-header text-xl font-bold text-center text-pink-800 mb-4 border-b-2 border-pink-200 pb-2">Damen</h3>
@@ -727,33 +747,15 @@
             const dateString = `Stand: ${today.toLocaleDateString('de-DE')}`;
             document.querySelectorAll('.current-date').forEach(el => el.textContent = dateString);
 
+            // Temporarily remove shadow and border from main container to prevent ghosting on empty pages
+            element.classList.remove('shadow-sm', 'border', 'border-gray-200', 'p-8', 'rounded-lg');
+
             const opt = {
-                margin:       10, // 10mm margin on all sides
+                margin:       0, // Zero margin, handle padding inside the wrappers
                 filename:     `Forderungspyramiden_${today.toISOString().split('T')[0]}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1600 }, // windowWidth ensures desktop layout
-                // Use A3 format, landscape orientation allows wide pyramids to fit perfectly
-                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
-                // Explicitly tell the engine to break pages before elements with the .page-break class
-                pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' } 
-            };
-
-            // Generate PDF
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Cleanup after export
-                document.body.classList.remove('pdf-export-mode');
-            }).catch(err => {
-                console.error("PDF Export Error:", err);
-                document.body.classList.remove('pdf-export-mode');
-                showMessage('Fehler', 'Beim Erstellen des PDFs ist ein Fehler aufgetreten.', 'error');
-            });
-        }
-
-        // --- Initialization ---
-        window.onload = () => {
-            renderAll();
-        };
-
-    </script>
-</body>
-</html>
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    letterRendering: true, 
+                    // Lock the
