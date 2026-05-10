@@ -78,10 +78,10 @@
             display: none !important;
         }
         
-        /* Adjust layout for A3 PDF */
+        /* Adjust layout for A3 PDF (Landscape) */
         .pdf-export-mode {
             background-color: white;
-            width: 1122px !important; /* Force exact width for html2canvas viewport (A3 Portrait) */
+            width: 1587px !important; /* Force exact width for html2canvas viewport (A3 Landscape) */
         }
 
         /* Remove container paddings/margins that cause extra empty pages */
@@ -90,7 +90,7 @@
             border: none !important;
             box-shadow: none !important;
             background-color: white !important;
-            width: 1122px !important;
+            width: 1587px !important;
             max-width: none !important;
             margin: 0 !important;
         }
@@ -98,7 +98,7 @@
         .pdf-export-mode #pdf-content > div {
             padding: 0 !important;
             margin: 0 !important;
-            width: 1122px !important;
+            width: 1587px !important;
             max-width: none !important;
             /* Remove space-y classes */
             display: block !important; 
@@ -106,14 +106,14 @@
 
         /* Pixel-Locked Canvas: Exact fit and 1 page per wrapper */
         .pdf-export-mode .pyramid-wrapper {
-            /* 1122x1587px exactly equals A3 Portrait at 96dpi */
-            width: 1122px !important; 
-            height: 1587px !important; 
+            /* 1587x1122px exactly equals A3 Landscape at 96dpi */
+            width: 1587px !important; 
+            height: 1122px !important; 
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important; /* Vertically centralize content */
             align-items: center !important; /* Horizontally centralize content */
-            padding: 60px !important; 
+            padding: 40px !important; 
             margin: 0 !important; 
             box-sizing: border-box !important;
             border: none !important; 
@@ -126,42 +126,42 @@
             flex-direction: column !important;
             justify-content: center !important; 
             align-items: center !important; 
-            gap: 50px !important; /* Increased vertical gap to stretch beautifully in portrait */
+            gap: 25px !important; /* Reduced vertical gap to make pyramid smaller */
             width: 100% !important;
-            margin-top: 2rem !important; 
+            margin-top: 1rem !important; 
             margin-bottom: 0 !important;
         }
 
         .pdf-export-mode .pyramid-row {
             display: flex !important;
             justify-content: center !important;
-            gap: 15px !important; /* Reduced horizontal gap to fit 6 cards in portrait width */
+            gap: 20px !important; /* Standardized horizontal gap */
         }
 
         .pdf-export-mode .player-card {
-            padding: 1rem 1rem !important;
-            min-width: 140px !important; /* Reduced so the widest row fits the narrower page */
-            border-width: 3px !important;
+            padding: 0.75rem 1rem !important;
+            min-width: 150px !important; 
+            border-width: 2px !important;
             box-shadow: none !important; 
             border-color: #374151 !important; 
             background-color: white !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
-            border-radius: 12px !important;
+            border-radius: 8px !important;
         }
 
         .pdf-export-mode .player-card span {
-            font-size: 1.2rem !important; 
+            font-size: 1rem !important; /* Smaller text size for compact look */
             font-weight: bold !important;
         }
 
         .pdf-export-mode .rank-badge {
-            width: 35px !important;
-            height: 35px !important;
-            font-size: 1.1rem !important;
-            top: -15px !important;
-            left: -15px !important;
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 0.9rem !important;
+            top: -12px !important;
+            left: -12px !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
@@ -175,7 +175,7 @@
         .pdf-export-mode .pdf-header {
             display: block !important;
             text-align: center !important;
-            margin-bottom: 3rem !important;
+            margin-bottom: 2rem !important; /* Reduced space below header */
             width: 100% !important;
         }
         
@@ -757,10 +757,10 @@
                     scale: 2, 
                     useCORS: true, 
                     letterRendering: true, 
-                    windowWidth: 1122, // Lock the canvas to exactly the pixel width of our A3 Portrait wrapper
+                    windowWidth: 1587, // Lock the canvas to exactly the pixel width of our A3 Landscape wrapper
                     scrollY: 0         // Prevent scrolling offset bugs causing cutoffs
                 },
-                jsPDF:        { unit: 'px', format: [1122, 1587], orientation: 'portrait' },
+                jsPDF:        { unit: 'px', format: [1587, 1122], orientation: 'landscape' }, // Landscape mode
                 pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' }
             };
 
