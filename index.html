@@ -116,13 +116,12 @@
         
         /* Adjust layout for A3 PDF (Landscape) using strict millimeter measurements */
         .pdf-export-mode {
-            background-color: white !important;
-            width: 420mm !important; 
+            overflow: visible !important;
             height: auto !important;
+            width: auto !important;
             margin: 0 !important;
             padding: 0 !important;
         }
-
         /* Remove container paddings/margins that cause extra empty pages */
         .pdf-export-mode #pdf-content {
             padding: 0 !important;
