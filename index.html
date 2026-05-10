@@ -81,7 +81,15 @@
         /* Adjust layout for A3 PDF */
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
-            margin-bottom: 4rem;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        /* Forces a new page for PDF generation */
+        .pdf-export-mode .page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+            padding-top: 2rem;
         }
         
         .pdf-export-mode h2 {
@@ -161,21 +169,22 @@
                     <p class="text-gray-500" id="pdf-date"></p>
                 </div>
 
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-12">
+                <!-- Changed from flex layout to block layout to ensure PDF page-breaks work reliably -->
+                <div class="block w-full space-y-16 pb-8">
                     <!-- Herren U60 Pyramid -->
-                    <div class="pyramid-wrapper" id="pyramid-herren-u60">
+                    <div class="pyramid-wrapper w-full" id="pyramid-herren-u60">
                         <h3 class="text-xl font-bold text-center text-blue-800 mb-4 border-b-2 border-blue-200 pb-2">Herren U60</h3>
                         <div id="render-herren-u60" class="pyramid-container"></div>
                     </div>
 
-                    <!-- Herren Ü60 Pyramid -->
-                    <div class="pyramid-wrapper" id="pyramid-herren-ue60">
+                    <!-- Herren Ü60 Pyramid (With page break for PDF) -->
+                    <div class="pyramid-wrapper w-full page-break" id="pyramid-herren-ue60">
                         <h3 class="text-xl font-bold text-center text-green-800 mb-4 border-b-2 border-green-200 pb-2">Herren Ü60</h3>
                         <div id="render-herren-ue60" class="pyramid-container"></div>
                     </div>
 
-                    <!-- Damen Pyramid -->
-                    <div class="pyramid-wrapper" id="pyramid-damen">
+                    <!-- Damen Pyramid (With page break for PDF) -->
+                    <div class="pyramid-wrapper w-full page-break" id="pyramid-damen">
                         <h3 class="text-xl font-bold text-center text-pink-800 mb-4 border-b-2 border-pink-200 pb-2">Damen</h3>
                         <div id="render-damen" class="pyramid-container"></div>
                     </div>
@@ -626,8 +635,10 @@
                 filename:     `Forderungspyramiden_${today.toISOString().split('T')[0]}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-                // Use A3 format, landscape orientation usually better for 3 pyramids side-by-side
-                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' }
+                // Use A3 format, landscape orientation allows wide pyramids to fit perfectly
+                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
+                // Explicitly tell the engine to break pages before elements with the .page-break class
+                pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' } 
             };
 
             // Generate PDF
