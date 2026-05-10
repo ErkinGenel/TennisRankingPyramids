@@ -99,11 +99,13 @@
         .pdf-export-mode .pyramid-wrapper {
             break-inside: avoid;
             width: 100%;
-            height: 255mm !important; /* Scaled down safely below A3 Landscape limits (297mm) */
-            max-height: 255mm !important;
+            height: 275mm !important; /* Fill the A3 Landscape printable height perfectly */
+            max-height: 275mm !important;
             display: flex;
             flex-direction: column;
-            padding: 10mm !important; /* Inner padding so content breathes inside the frame */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            padding: 10mm !important; 
             margin: 0 auto !important; 
             box-sizing: border-box;
             border: 2px solid #d1d5db !important; /* Outer gray frame explicitly per page */
@@ -113,12 +115,15 @@
         }
 
         .pdf-export-mode .pyramid-container {
-            flex-grow: 1;
+            flex-grow: 0; /* Remove flex-grow to allow natural centering */
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly; /* Evenly space the rows vertically */
-            gap: 0.25rem; /* Scaled down gap */
+            justify-content: center;
+            align-items: center; 
+            gap: 0.5rem; /* Scaled down gap */
+            margin-top: 2rem; /* Space below header */
             margin-bottom: 0;
+            width: 100%;
         }
 
         .pdf-export-mode .pyramid-row {
@@ -152,6 +157,7 @@
             display: block;
             text-align: center;
             margin-bottom: 1rem;
+            width: 100%;
         }
 
         .pdf-export-mode .web-header {
