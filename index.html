@@ -1,1 +1,653 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Forderungspyramide</title>
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        
+        /* Pyramid specific styles */
+        .pyramid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
 
+        .pyramid-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .player-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #3b82f6; /* Tailwind blue-500 */
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background-color: #ef4444; /* Tailwind red-500 */
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Hide elements during PDF export */
+        .no-print {
+            display: block;
+        }
+        .pdf-export-mode .no-print {
+            display: none !important;
+        }
+        
+        /* Adjust layout for A3 PDF */
+        .pdf-export-mode .pyramid-wrapper {
+            break-inside: avoid;
+            margin-bottom: 4rem;
+        }
+        
+        .pdf-export-mode h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Navigation styles */
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+        }
+        .nav-btn:not(.active) {
+            background-color: transparent;
+            color: #4b5563; /* Tailwind gray-600 */
+        }
+        .nav-btn:not(.active):hover {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm sticky top-0 z-10 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-table-tennis-paddle-ball text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">Forderungspyramide</h1>
+                </div>
+                <nav class="flex space-x-4">
+                    <button id="nav-overview" class="nav-btn active" onclick="switchView('overview')">
+                        <i class="fa-solid fa-eye mr-2"></i>Übersicht
+                    </button>
+                    <button id="nav-admin" class="nav-btn" onclick="switchView('admin')">
+                        <i class="fa-solid fa-users-gear mr-2"></i>Verwaltung
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- VIEW: OVERVIEW -->
+        <section id="view-overview" class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8 no-print">
+                <h2 class="text-2xl font-bold text-gray-800">Aktuelle Ranglisten</h2>
+                <button onclick="exportToPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow transition duration-200 flex items-center">
+                    <i class="fa-solid fa-file-pdf mr-2"></i>Als PDF (A3) exportieren
+                </button>
+            </div>
+
+            <!-- Content to be exported to PDF -->
+            <div id="pdf-content" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+                <div class="text-center mb-8 hidden" id="pdf-header">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-2">TC Forderungspyramiden</h1>
+                    <p class="text-gray-500" id="pdf-date"></p>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-12">
+                    <!-- Herren U60 Pyramid -->
+                    <div class="pyramid-wrapper" id="pyramid-herren-u60">
+                        <h3 class="text-xl font-bold text-center text-blue-800 mb-4 border-b-2 border-blue-200 pb-2">Herren U60</h3>
+                        <div id="render-herren-u60" class="pyramid-container"></div>
+                    </div>
+
+                    <!-- Herren Ü60 Pyramid -->
+                    <div class="pyramid-wrapper" id="pyramid-herren-ue60">
+                        <h3 class="text-xl font-bold text-center text-green-800 mb-4 border-b-2 border-green-200 pb-2">Herren Ü60</h3>
+                        <div id="render-herren-ue60" class="pyramid-container"></div>
+                    </div>
+
+                    <!-- Damen Pyramid -->
+                    <div class="pyramid-wrapper" id="pyramid-damen">
+                        <h3 class="text-xl font-bold text-center text-pink-800 mb-4 border-b-2 border-pink-200 pb-2">Damen</h3>
+                        <div id="render-damen" class="pyramid-container"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMINISTRATION -->
+        <section id="view-admin" class="max-w-7xl mx-auto hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Spielerverwaltung</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Admin Column: Herren U60 -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-blue-800">Herren U60</h3>
+                        <button onclick="openAddPlayerModal('herren_u60')" class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
+                            <i class="fa-solid fa-plus mr-1"></i>Spieler
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <button onclick="openChallengeModal('herren_u60')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                            Forderung eintragen
+                        </button>
+                    </div>
+                    <ul id="list-herren-u60" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                        <!-- List populated by JS -->
+                    </ul>
+                </div>
+
+                <!-- Admin Column: Herren Ü60 -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-green-800">Herren Ü60</h3>
+                        <button onclick="openAddPlayerModal('herren_ue60')" class="text-sm bg-green-100 hover:bg-green-200 text-green-800 py-1 px-3 rounded transition">
+                            <i class="fa-solid fa-plus mr-1"></i>Spieler
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <button onclick="openChallengeModal('herren_ue60')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">
+                            Forderung eintragen
+                        </button>
+                    </div>
+                    <ul id="list-herren-ue60" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                        <!-- List populated by JS -->
+                    </ul>
+                </div>
+
+                <!-- Admin Column: Damen -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-pink-800">Damen</h3>
+                        <button onclick="openAddPlayerModal('damen')" class="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 py-1 px-3 rounded transition">
+                            <i class="fa-solid fa-plus mr-1"></i>Spielerin
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <button onclick="openChallengeModal('damen')" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded transition">
+                            Forderung eintragen
+                        </button>
+                    </div>
+                    <ul id="list-damen" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                        <!-- List populated by JS -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODALS -->
+
+    <!-- Add Player Modal -->
+    <div id="modal-add-player" class="modal">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Neuen Spieler hinzufügen</h3>
+                <button onclick="closeModal('modal-add-player')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-2">Kategorie: <span id="add-player-category" class="font-semibold"></span></p>
+                <label for="new-player-name" class="block text-sm font-medium text-gray-700 mb-1">Name des Spielers</label>
+                <input type="text" id="new-player-name" class="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Max Mustermann">
+                <p class="text-xs text-gray-500 mt-2">Der Spieler wird gem. Regel 6.1 am Ende der Pyramide eingefügt.</p>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-add-player')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Abbrechen</button>
+                <button onclick="addPlayer()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Challenge Result Modal -->
+    <div id="modal-challenge" class="modal">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Forderungsergebnis eintragen</h3>
+                <button onclick="closeModal('modal-challenge')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-4 border-b pb-2">Kategorie: <span id="challenge-category" class="font-semibold"></span></p>
+                
+                <div class="mb-4">
+                    <label for="challenger-select" class="block text-sm font-medium text-gray-700 mb-1">Sieger (Herausforderer)</label>
+                    <select id="challenger-select" class="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Bitte wählen...</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Wer hat gefordert und gewonnen?</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="defender-select" class="block text-sm font-medium text-gray-700 mb-1">Verlierer (Geforderter)</label>
+                    <select id="defender-select" class="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Bitte wählen...</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Wer wurde gefordert und hat verloren?</p>
+                </div>
+
+                <div class="bg-yellow-50 p-3 rounded-md border border-yellow-200">
+                    <p class="text-xs text-yellow-800">
+                        <i class="fa-solid fa-circle-info mr-1"></i>
+                        <strong>Regel 4.2:</strong> Gewinnt der Herausforderer, so rückt er auf den Platz des Verlierers. Der Geforderte fällt um einen Platz zurück, alle dazwischen liegenden Spieler ebenfalls.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-challenge')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Abbrechen</button>
+                <button onclick="processChallenge()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Ergebnis speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal (Replaces alert) -->
+    <div id="modal-message" class="modal">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full text-center">
+            <div id="message-icon" class="mb-4 text-4xl"></div>
+            <h3 id="message-title" class="text-lg font-bold text-gray-900 mb-2"></h3>
+            <p id="message-text" class="text-gray-600 mb-6"></p>
+            <button onclick="closeModal('modal-message')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        
+        // Initial Mock Data (In a real app, this would come from a backend)
+        const initialData = {
+            herren_u60: [
+                "Thomas M.", "Michael S.", "Andreas K.", "Stefan L.", "Christian P.", 
+                "Markus B.", "Daniel T.", "Florian W.", "Tobias R.", "Alexander H."
+            ],
+            herren_ue60: [
+                "Günther W.", "Peter M.", "Klaus D.", "Werner F.", "Hans-Peter S.",
+                "Manfred B."
+            ],
+            damen: [
+                "Sabine K.", "Martina S.", "Julia W.", "Claudia B.", "Andrea L.",
+                "Stefanie M.", "Karin P.", "Lisa H."
+            ]
+        };
+
+        // Load data from localStorage or use initial data
+        let pyramidData = JSON.parse(localStorage.getItem('tennisPyramidData')) || initialData;
+        let currentActionCategory = '';
+
+        // --- Utility Functions ---
+
+        function saveState() {
+            localStorage.setItem('tennisPyramidData', JSON.stringify(pyramidData));
+            renderAll();
+        }
+
+        function calculateRows(totalPlayers) {
+            let rows = 0;
+            let playersInRow = 1;
+            let playersCounted = 0;
+            
+            while (playersCounted < totalPlayers) {
+                rows++;
+                playersCounted += playersInRow;
+                playersInRow++;
+            }
+            return rows;
+        }
+
+        // --- UI Flow & Navigation ---
+
+        function switchView(viewId) {
+            // Update Navigation Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+
+            // Update Views
+            document.getElementById('view-overview').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            if (viewId === 'overview') renderAllPyramids();
+            if (viewId === 'admin') renderAdminLists();
+        }
+
+        // --- Modals ---
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showMessage(title, text, type = 'info') {
+            const modal = document.getElementById('modal-message');
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-text').textContent = text;
+            
+            const iconEl = document.getElementById('message-icon');
+            if (type === 'error') {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-500"></i>';
+            } else if (type === 'success') {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+            } else {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-info text-blue-500"></i>';
+            }
+            
+            openModal('modal-message');
+        }
+
+        // --- Rendering Logic: Overview (Pyramids) ---
+
+        function renderPyramid(categoryId, containerId) {
+            const players = pyramidData[categoryId];
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (players.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 italic">Keine Spieler in dieser Kategorie.</p>';
+                return;
+            }
+
+            const numRows = calculateRows(players.length);
+            let playerIndex = 0;
+
+            for (let i = 1; i <= numRows; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'pyramid-row';
+                
+                // Calculate z-index to make higher rows overlap lower rows slightly if needed
+                rowDiv.style.zIndex = numRows - i;
+
+                for (let j = 0; j < i; j++) {
+                    if (playerIndex < players.length) {
+                        const rank = playerIndex + 1;
+                        const playerName = players[playerIndex];
+                        
+                        const card = document.createElement('div');
+                        card.className = 'player-card';
+                        
+                        // Add Rank Badge
+                        const badge = document.createElement('div');
+                        badge.className = 'rank-badge';
+                        badge.textContent = rank;
+                        card.appendChild(badge);
+
+                        // Add Player Name
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'font-semibold text-gray-800 text-sm md:text-base';
+                        nameSpan.textContent = playerName;
+                        card.appendChild(nameSpan);
+
+                        rowDiv.appendChild(card);
+                        playerIndex++;
+                    } else {
+                        // Empty slot to maintain pyramid shape if row isn't full
+                        const emptyCard = document.createElement('div');
+                        emptyCard.className = 'player-card opacity-30 border-dashed bg-gray-50';
+                        emptyCard.innerHTML = '<span class="text-sm text-gray-400">Frei</span>';
+                        rowDiv.appendChild(emptyCard);
+                    }
+                }
+                container.appendChild(rowDiv);
+            }
+        }
+
+        function renderAllPyramids() {
+            renderPyramid('herren_u60', 'render-herren-u60');
+            renderPyramid('herren_ue60', 'render-herren-ue60');
+            renderPyramid('damen', 'render-damen');
+        }
+
+        // --- Rendering Logic: Administration (Lists) ---
+
+        function renderAdminList(categoryId, containerId) {
+            const players = pyramidData[categoryId];
+            const ul = document.getElementById(containerId);
+            ul.innerHTML = '';
+
+            if (players.length === 0) {
+                ul.innerHTML = '<li class="py-3 px-4 text-gray-500 italic text-center">Keine Spieler</li>';
+                return;
+            }
+
+            players.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.className = 'py-3 flex justify-between items-center group hover:bg-gray-50 px-2 rounded transition';
+                
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-700 font-bold rounded-full mr-3 text-sm">${index + 1}</span>
+                        <span class="font-medium text-gray-800">${player}</span>
+                    </div>
+                    <button onclick="removePlayer('${categoryId}', ${index})" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition p-1" title="Spieler entfernen">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                ul.appendChild(li);
+            });
+        }
+
+        function renderAdminLists() {
+            renderAdminList('herren_u60', 'list-herren-u60');
+            renderAdminList('herren_ue60', 'list-herren-ue60');
+            renderAdminList('damen', 'list-damen');
+        }
+
+        function renderAll() {
+            renderAllPyramids();
+            renderAdminLists();
+        }
+
+        // --- Action Logic ---
+
+        // Add Player
+        function openAddPlayerModal(category) {
+            currentActionCategory = category;
+            const catName = category === 'herren_u60' ? 'Herren U60' : category === 'herren_ue60' ? 'Herren Ü60' : 'Damen';
+            document.getElementById('add-player-category').textContent = catName;
+            document.getElementById('new-player-name').value = '';
+            openModal('modal-add-player');
+        }
+
+        function addPlayer() {
+            const nameInput = document.getElementById('new-player-name').value.trim();
+            if (!nameInput) {
+                showMessage('Fehler', 'Bitte geben Sie einen Namen ein.', 'error');
+                return;
+            }
+
+            // Regel 6.1: Neue Spieler am Ende einreihen
+            pyramidData[currentActionCategory].push(nameInput);
+            saveState();
+            closeModal('modal-add-player');
+            showMessage('Erfolg', `${nameInput} wurde am Ende der Pyramide hinzugefügt.`, 'success');
+        }
+
+        // Remove Player
+        function removePlayer(category, index) {
+            const playerName = pyramidData[category][index];
+            // Instead of confirm(), we just do it for simplicity in this demo, 
+            // or we could build a custom confirm modal. We will proceed directly.
+            pyramidData[category].splice(index, 1);
+            saveState();
+            showMessage('Entfernt', `${playerName} wurde aus der Rangliste entfernt.`);
+        }
+
+        // Challenge Logic (Regel 4.2)
+        function openChallengeModal(category) {
+            const players = pyramidData[category];
+            if (players.length < 2) {
+                showMessage('Hinweis', 'Es werden mindestens 2 Spieler für eine Forderung benötigt.', 'info');
+                return;
+            }
+
+            currentActionCategory = category;
+            const catName = category === 'herren_u60' ? 'Herren U60' : category === 'herren_ue60' ? 'Herren Ü60' : 'Damen';
+            document.getElementById('challenge-category').textContent = catName;
+
+            const challengerSelect = document.getElementById('challenger-select');
+            const defenderSelect = document.getElementById('defender-select');
+            
+            challengerSelect.innerHTML = '<option value="">Bitte wählen...</option>';
+            defenderSelect.innerHTML = '<option value="">Bitte wählen...</option>';
+
+            players.forEach((player, index) => {
+                const optionHtml = `<option value="${index}">Platz ${index + 1}: ${player}</option>`;
+                challengerSelect.innerHTML += optionHtml;
+                defenderSelect.innerHTML += optionHtml;
+            });
+
+            openModal('modal-challenge');
+        }
+
+        function processChallenge() {
+            const challengerIdx = parseInt(document.getElementById('challenger-select').value);
+            const defenderIdx = parseInt(document.getElementById('defender-select').value);
+
+            if (isNaN(challengerIdx) || isNaN(defenderIdx)) {
+                showMessage('Fehler', 'Bitte wählen Sie Herausforderer und Verlierer aus.', 'error');
+                return;
+            }
+
+            if (challengerIdx === defenderIdx) {
+                showMessage('Fehler', 'Ein Spieler kann nicht gegen sich selbst spielen.', 'error');
+                return;
+            }
+
+            if (challengerIdx < defenderIdx) {
+                 showMessage('Hinweis', 'Der Herausforderer (Sieger) stand bereits vor dem Verlierer. An der Rangliste ändert sich nichts (gemäß Regel 4.3).', 'info');
+                 closeModal('modal-challenge');
+                 return;
+            }
+
+            // Implementierung Regel 4.2:
+            // Gewinnt der Herausforderer, so rückt er auf den Platz des Verlierers. 
+            // Der Geforderte fällt um einen Platz zurück, alle dazwischen liegenden Spieler ebenfalls.
+            
+            const players = pyramidData[currentActionCategory];
+            const challengerName = players[challengerIdx];
+            
+            // Remove challenger from current position
+            players.splice(challengerIdx, 1);
+            // Insert challenger at defender's position
+            players.splice(defenderIdx, 0, challengerName);
+
+            saveState();
+            closeModal('modal-challenge');
+            showMessage('Erfolg', 'Die Rangliste wurde gemäß Regel 4.2 aktualisiert.', 'success');
+        }
+
+        // --- PDF Export Logic ---
+        function exportToPDF() {
+            // Setup document for export
+            const element = document.getElementById('pdf-content');
+            
+            // Add styling class to hide buttons and format for A3
+            document.body.classList.add('pdf-export-mode');
+            document.getElementById('pdf-header').classList.remove('hidden');
+            
+            const today = new Date();
+            document.getElementById('pdf-date').textContent = `Stand: ${today.toLocaleDateString('de-DE')}`;
+
+            const opt = {
+                margin:       10,
+                filename:     `Forderungspyramiden_${today.toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                // Use A3 format, landscape orientation usually better for 3 pyramids side-by-side
+                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' }
+            };
+
+            // Generate PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Cleanup after export
+                document.body.classList.remove('pdf-export-mode');
+                document.getElementById('pdf-header').classList.add('hidden');
+            }).catch(err => {
+                console.error("PDF Export Error:", err);
+                document.body.classList.remove('pdf-export-mode');
+                document.getElementById('pdf-header').classList.add('hidden');
+                showMessage('Fehler', 'Beim Erstellen des PDFs ist ein Fehler aufgetreten.', 'error');
+            });
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            renderAll();
+        };
+
+    </script>
+</body>
+</html>
