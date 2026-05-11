@@ -116,15 +116,15 @@
         
         /* Adjust layout for A3 PDF (Landscape) using strict millimeter measurements */
         .pdf-export-mode {
-            overflow: visible !important;
             background-color: white !important;
             width: 420mm !important; 
             height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
         }
+
         /* Remove container paddings/margins that cause extra empty pages */
-        .pdf-export-mode #pdf-content {
+        .pdf-export-mode #pdf-content, .pdf-export-mode #pdf-content-empty {
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
@@ -132,15 +132,13 @@
             width: 420mm !important;
             max-width: none !important;
             margin: 0 !important;
-            overflow: visible !important;
         }
         
-        .pdf-export-mode #pdf-content > div {
+        .pdf-export-mode #pdf-content > div, .pdf-export-mode #pdf-content-empty > div {
             padding: 0 !important;
             margin: 0 !important;
             width: 420mm !important;
-            display: block !important;
-            overflow: visible !important;
+            display: block !important; 
         }
 
         /* Kill Tailwind's space-y-16 margins during PDF export to prevent empty pages */
@@ -190,6 +188,7 @@
         .pdf-export-mode .player-card {
             padding: 16px 28px !important;
             min-width: 220px !important; 
+            min-height: 64px !important; /* ensures empty template cards stay thick */
             border: 3px solid #166534 !important; /* tcgreen-800 */
             box-shadow: none !important; 
             background-color: white !important;
@@ -304,6 +303,9 @@
                     <button id="nav-rules" class="nav-btn" onclick="switchView('rules')">
                         <i class="fa-solid fa-book-open mr-2"></i>Regeln
                     </button>
+                    <button id="nav-empty" class="nav-btn" onclick="switchView('empty')">
+                        <i class="fa-solid fa-plus mr-2"></i>Leere Pyramide
+                    </button>
                 </nav>
             </div>
         </div>
@@ -361,7 +363,8 @@
         </section>
 
         <!-- VIEW: RULES -->
-        <section id="view-rules" class="max-w-4xl mx-auto hidden"><div class="mb-8">
+        <section id="view-rules" class="max-w-4xl mx-auto hidden">
+            <div class="mb-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                     <h2 class="text-3xl font-heading font-bold text-tcgreen-800">Regeln der Forderungspyramide</h2>
                     <a href="Forderungspyramide_Regeln-v7.pdf" download="Forderungspyramiden_2026-05-10.pdf" class="bg-tcclay-600 hover:bg-tcclay-700 text-white font-heading font-semibold py-2 px-5 rounded-full shadow-md transition duration-300 flex items-center transform hover:-translate-y-0.5 text-sm shrink-0">
@@ -376,7 +379,6 @@
                     </p>
                 </div>
             </div>
-
 
             <!-- 1. Zweck -->
             <div class="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
@@ -588,6 +590,52 @@
             </div>
         </section>
 
+        <!-- VIEW: EMPTY PYRAMID GENERATOR -->
+        <section id="view-empty" class="max-w-7xl mx-auto hidden">
+            <div class="mb-8 no-print">
+                <h2 class="text-3xl font-heading font-bold text-gray-800 mb-6">Leere Pyramide erstellen</h2>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-end mb-8">
+                    <div class="w-full md:w-1/3">
+                        <label for="empty-category" class="block text-sm font-semibold text-gray-700 mb-2">Kategoriename (z.B. Herren 40)</label>
+                        <input type="text" id="empty-category" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-tcgreen-600 focus:border-transparent" placeholder="Name eingeben">
+                    </div>
+                    <div class="w-full md:w-1/3">
+                        <label for="empty-entries" class="block text-sm font-semibold text-gray-700 mb-2">Anzahl der Plätze</label>
+                        <input type="number" id="empty-entries" min="1" max="100" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-tcgreen-600 focus:border-transparent" placeholder="z.B. 21">
+                    </div>
+                    <div class="w-full md:w-1/3">
+                        <button onclick="generateEmptyPyramid()" class="w-full bg-tcgreen-800 hover:bg-tcgreen-900 text-white font-heading font-semibold py-2.5 px-6 rounded-lg shadow-md transition duration-300 flex justify-center items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Generieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty Pyramid Export Area -->
+            <div id="empty-export-area" class="hidden">
+                <div class="flex justify-end mb-6 no-print">
+                    <button onclick="exportEmptyPDF()" class="bg-tcclay-600 hover:bg-tcclay-700 text-white font-heading font-semibold py-2.5 px-6 rounded-full shadow-md transition duration-300 flex items-center transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-file-pdf mr-2"></i>Als PDF (A3) exportieren
+                    </button>
+                </div>
+
+                <div id="pdf-content-empty" class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <div class="block w-full">
+                        <div class="pyramid-wrapper" id="pyramid-custom">
+                            <div class="pdf-header">
+                                <h1 class="font-bold mb-2">TC Wannweil e.V.</h1>
+                                <h2 id="empty-pdf-category" class="font-bold mb-4">Forderungspyramide</h2>
+                                <p class="text-gray-500 current-date"></p>
+                            </div>
+                            <h3 id="empty-web-category" class="web-header text-2xl font-heading font-bold text-center text-tcgreen-800 mb-6 pb-2">Kategorie</h3>
+                            <div id="render-empty" class="pyramid-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -635,6 +683,7 @@
 
             document.getElementById('view-overview').classList.add('hidden');
             document.getElementById('view-rules').classList.add('hidden');
+            document.getElementById('view-empty').classList.add('hidden');
             
             document.getElementById(`view-${viewId}`).classList.remove('hidden');
 
@@ -724,6 +773,98 @@
                 },
                 jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
                 pagebreak:    { mode: ['css', 'legacy'], before: '.page-break' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('pdf-export-mode');
+                element.classList.add('shadow-sm', 'border', 'border-gray-100', 'p-8', 'rounded-xl');
+            });
+        }
+
+        // --- Empty Pyramid Logic ---
+
+        function generateEmptyPyramid() {
+            const categoryName = document.getElementById('empty-category').value.trim();
+            const numEntries = parseInt(document.getElementById('empty-entries').value, 10);
+
+            if (!categoryName || isNaN(numEntries) || numEntries < 1) {
+                alert('Bitte geben Sie einen gültigen Kategorienamen und eine Anzahl von Plätzen ein.');
+                return;
+            }
+
+            // Update headers
+            document.getElementById('empty-pdf-category').textContent = `Forderungspyramide - ${categoryName}`;
+            document.getElementById('empty-web-category').textContent = categoryName;
+
+            const container = document.getElementById('render-empty');
+            container.innerHTML = '';
+
+            const numRows = calculateRows(numEntries);
+            let playerIndex = 0;
+
+            for (let i = 1; i <= numRows; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'pyramid-row';
+                rowDiv.style.zIndex = numRows - i;
+
+                for (let j = 0; j < i; j++) {
+                    if (playerIndex < numEntries) {
+                        const rank = playerIndex + 1;
+                        
+                        const card = document.createElement('div');
+                        card.className = 'player-card';
+                        card.style.minHeight = '48px'; 
+                        
+                        const badge = document.createElement('div');
+                        badge.className = 'rank-badge';
+                        badge.textContent = rank;
+                        card.appendChild(badge);
+
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'font-semibold text-gray-800 text-sm md:text-base tracking-tight';
+                        // Add wide blank space for printing/writing
+                        nameSpan.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'; 
+                        card.appendChild(nameSpan);
+
+                        rowDiv.appendChild(card);
+                        playerIndex++;
+                    } else {
+                        const emptyCard = document.createElement('div');
+                        emptyCard.className = 'player-card opacity-40 border-dashed bg-gray-50';
+                        emptyCard.innerHTML = '<span class="text-sm text-gray-400">Frei</span>';
+                        rowDiv.appendChild(emptyCard);
+                    }
+                }
+                container.appendChild(rowDiv);
+            }
+
+            // Show export area
+            document.getElementById('empty-export-area').classList.remove('hidden');
+        }
+
+        function exportEmptyPDF() {
+            const element = document.getElementById('pdf-content-empty');
+            const categoryName = document.getElementById('empty-category').value.trim() || 'Leer';
+            document.body.classList.add('pdf-export-mode');
+            
+            const today = new Date();
+            const dateString = `Stand: ${today.toLocaleDateString('de-DE')}`;
+            document.querySelectorAll('.current-date').forEach(el => el.textContent = dateString);
+
+            element.classList.remove('shadow-sm', 'border', 'border-gray-100', 'p-8', 'rounded-xl');
+
+            const opt = {
+                margin:       0, 
+                filename:     `Forderungspyramide_${categoryName}_${today.toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    letterRendering: true, 
+                    scrollY: 0,
+                    windowWidth: 1587 
+                },
+                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
